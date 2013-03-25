@@ -16,13 +16,16 @@
  *	FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
  *	for more details.
  *	
+ *	You should have received a copy of the GNU General Public License
+ *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *	
  ***************************************************************************/
-global $unapproved_threads;
+
 if(!defined("IN_MYBB"))
 {
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
-$plugins->add_hook("usercp_end","NumUnapproved_run");
+$plugins->add_hook("usercp_end", "NumUnapproved_run");
 
 function NumUnapproved_info()
 {
@@ -39,56 +42,46 @@ function NumUnapproved_info()
 }
 
 
-function NumUnapproved_activate(){
-require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
-find_replace_templatesets("usercp", "#".preg_quote('{$referral_info}')."#i", '<strong>{$lang->NumUnapproved_threads}</strong> {$NumUnapproved[\'threads\']}<br />
+function NumUnapproved_activate()
+{
+	require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
+	find_replace_templatesets("usercp", "#".preg_quote('{$referral_info}')."#i", '<strong>{$lang->NumUnapproved_threads}</strong> {$NumUnapproved[\'threads\']}<br />
 <strong>{$lang->NumUnapproved_posts}</strong> {$NumUnapproved[\'posts\']}<br />
 {$referral_info}');
 }
 
-function NumUnapproved_deactivate(){
-require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
-find_replace_templatesets("usercp", "#".preg_quote('
+function NumUnapproved_deactivate()
+{
+	require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
+	find_replace_templatesets("usercp", "#".preg_quote('
 <strong>{$lang->NumUnapproved_threads}</strong> {$NumUnapproved[\'threads\']}<br />
 <strong>{$lang->NumUnapproved_posts}</strong> {$NumUnapproved[\'posts\']}<br />')."#i", '');
 }
 
-function NumUnapproved_lang()
+function NumUnapproved_run()
 {
-	global $lang;
-	$lang->load('NumUnapproved',false,true);
-	$l['NumUnapproved_threads'] = 'Unapproved Threads:';
-	$l['NumUnapproved_posts'] = 'Unapproved Posts:';
-	foreach($l as $key=>$val)
-	{
-		if(!$lang->$key)
-		{
-			$lang->$key=$val;
-		}
-	}
-}
+	global $db, $mybb, $lang, $NumUnapproved;
 
-function NumUnapproved_run(){
-	global $db, $mybb, $NumUnapproved;
-	// Include the language
-	NumUnapproved_lang();
-	// Include this for "my_number_format"
-	require_once MYBB_ROOT."/inc/functions.php";
+	$lang->load('NumUnapproved');
 	
 	// Generate the unapproved thread count
 	$query = $db->simple_select("threads", "*", "visible = '0' AND uid = '{$mybb->user['uid']}'");
 	$num_threads = $db->num_rows($query);
-	if(!$num_threads){
+	if(!$num_threads)
+	{
 		$num_threads = 0;
 	}
+	// Make the numbers look pretty
 	$unapproved_threads = my_number_format($num_threads);
 
 	// Generate the unapproved post count
 	$query = $db->simple_select("posts", "*", "visible = '0' AND uid = '{$mybb->user['uid']}'");
 	$num_posts = $db->num_rows($query);
-	if(!$num_posts){
+	if(!$num_posts)
+	{
 		$num_posts = 0;
 	}
+	// Make the numbers look pretty
 	$unapproved_posts = my_number_format($num_posts);
 
 	$NumUnapproved = array(
